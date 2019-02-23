@@ -1,0 +1,55 @@
+<html>
+
+<head>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.3.0/firebase-firestore.js"></script>
+    <script src="eventAPI.js"></script>
+    <script src="scriptassert.js"></script>
+    <script src="filescreen.js"></script>
+    <script src="queryLoader.js"></script>
+    <script src="localfirage.js"></script>
+    <script src="coreAdapter.js"></script>
+    <!-- the target operator -->
+    <script src="operators/httree.js"></script>
+    <script>
+        core.drive();
+
+
+        var filescreen = new _filescreen({
+            headprompt: "Welcome to Polymorph.",
+            offlineEnabled: false,
+            onlineQueryParam: "",
+            tutorialEnabled: false,
+            savePrefix: 'fiteme_io'
+        });
+
+        var queryLoader = new _queryLoader({
+            defaultOffline: false,
+            onlineLoad: function (id) {
+                filescreen.saveRecentDocument(id);
+                core.lockFirebase("fiteme_io/"+id+"/items");
+            },
+            blank: function () {
+                filescreen.showSplash();
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div id="main">
+
+    </div>
+</body>
+
+</html>
+
+<!--
+switch sides button
+show a splash screen on startup
+
+
+
+
+
+-->

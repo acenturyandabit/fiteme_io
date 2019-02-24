@@ -88,19 +88,47 @@ function _core() {
             })
         })
     }
+    this.path=undefined;
+    this.preid = undefined;
+    this.ccount = 0;
+    this.rcount=0;
+    this.update = function (id) {
+        let val = core.items[id];
+        let _val = JSON.parse(JSON.stringify(val));
+        localfirage.path(localfirage.dbroot, me.path).doc(id).set(_val);
+    }
+    this.stackman = function (id) {
+        if (id != me.preid && me.preid) {
+            me.update(me.preid);
+            this.rcount=0;
+        }
+        this.preid = id;
+        this.ccount = 4;
+        this.rcount++;
+        if (this.rcount > 50) {
+            this.ccount = 0;
+            this.rcount = 0;
+            me.update(id);
+        }
+    }
+    setInterval(() => {
+        if (this.ccount > -1) this.ccount -= 1;
+        if (this.ccount == 0) {
+            this.update(this.preid);
+        }
+    }, 100)
 
     this.lockFirebase = function (path) {
+        this.path=path;
         //optional function. Requires firebase shenanigans.
         //onupdate fires update.
-        let localChange=false;;
-        core.on("updateItem",function(d){
+        let localChange = false;;
+        core.on("updateItem", function (d) {
             if (!localChange) {
-                let val=core.items[d.id];
-                let _val = JSON.parse(JSON.stringify(val));
-                localfirage.path(localfirage.dbroot, path).doc(d.id).set(_val);
+                me.stackman(d.id);
             } else localChange = false;
         })
-        core.on("deleteItem",function(d){
+        core.on("deleteItem", function (d) {
             localfirage.path(localfirage.dbroot, path).doc(d.id).delete();
         });
 
@@ -110,12 +138,16 @@ function _core() {
                     case "added":
                     case "modified":
                         core.items[change.doc.id] = change.doc.data();
-                        localChange=true;
-                        core.fire("updateItem", {id:change.doc.id});
+                        localChange = true;
+                        core.fire("updateItem", {
+                            id: change.doc.id
+                        });
                         break;
                     case "removed":
                         localChange = true;
-                        core.fire("deleteItem", {id:change.doc.id});
+                        core.fire("deleteItem", {
+                            id: change.doc.id
+                        });
                         break;
                 }
             })

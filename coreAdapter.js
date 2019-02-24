@@ -97,7 +97,7 @@ function _core() {
             if (!localChange) {
                 let val=core.items[d.id];
                 let _val = JSON.parse(JSON.stringify(val));
-                localfirage.path(localfirage.dbroot, path).doc(d.id).update(_val);
+                localfirage.path(localfirage.dbroot, path).doc(d.id).set(_val);
             } else localChange = false;
         })
         localfirage.path(localfirage.dbroot, path).onSnapshot(shot => {

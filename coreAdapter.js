@@ -100,6 +100,10 @@ function _core() {
                 localfirage.path(localfirage.dbroot, path).doc(d.id).set(_val);
             } else localChange = false;
         })
+        core.on("deleteItem",function(d){
+            localfirage.path(localfirage.dbroot, path).doc(d.id).delete();
+        });
+
         localfirage.path(localfirage.dbroot, path).onSnapshot(shot => {
             shot.docChanges().forEach(change => {
                 switch (change.type) {

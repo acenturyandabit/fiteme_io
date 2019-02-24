@@ -29,7 +29,7 @@ core.registerOperator("httree", function (operator) {
     `
     operator.div.appendChild(this.style);
     this.rootdiv = document.createElement("div");
-    this.rootdiv.style.width="fit-content";
+    this.rootdiv.style.width = "fit-content";
     //Add content-independent HTML here. fromSaveData will be called if there are any items to load.
     this.plusbutton = document.createElement("button");
     this.plusbutton.innerText = "+";
@@ -78,37 +78,51 @@ core.registerOperator("httree", function (operator) {
     operator.div.appendChild(this.rootdiv);
 
     //////////////////Handle core item updates//////////////////
-
+    //cache requests to items that haven't been updated yet.
+    this.cachedUpdateRequests = {};
     //these are optional but can be used as a reference.
-    core.on("updateItem", function (d) {
-        let id = d.id;
+
+    this.drawItem = function (id) {
         //Check if item is shown
         if (core.items[id].httree) {
             let cdiv = me.rootdiv.querySelector("[data-id='" + id + "']");
             if (!cdiv) {
                 if (core.items[id].httree.parent) {
+
+
                     let pdiv = me.rootdiv.querySelector("[data-id='" + core.items[id].httree.parent + "']");
-                    if (!pdiv) core.fire("updateItem", core.items[id].httree.parent);
-                    pdiv = me.rootdiv.querySelector("[data-id='" + core.items[id].httree.parent + "']");
-                    if (pdiv) {
+                    if (!pdiv) {
+                        if (!this.cachedUpdateRequests[core.items[id].httree.parent]) this.cachedUpdateRequests[core.items[id].httree.parent] = [];
+                        this.cachedUpdateRequests[core.items[id].httree.parent].push(id);
+                    } else {
                         cdiv = me.template.cloneNode(true);
                         cdiv.dataset.id = id;
                         pdiv.children[3].appendChild(cdiv);
+                        if (this.cachedUpdateRequests[id])
+                            for (let i = 0; i < this.cachedUpdateRequests[id].length; i++) this.drawItem(this.cachedUpdateRequests[id][i]);
                     }
                 } else {
                     cdiv = me.template.cloneNode(true);
                     cdiv.dataset.id = id;
                     me.secondaryDiv.appendChild(cdiv);
+                    if (this.cachedUpdateRequests[id])
+                        for (let i = 0; i < this.cachedUpdateRequests[id].length; i++) this.drawItem(this.cachedUpdateRequests[id][i]);
                 }
             }
             if (cdiv) {
                 cdiv.children[1].value = core.items[id].title;
             }
         }
-        //Update item if relevant
-        //This will be called for all items when the items are loaded.
-        //This is also called when items are created.
+    }
+
+
+    core.on("updateItem", (d) => {
+        this.drawItem(d.id)
     });
+
+    //Update item if relevant
+    //This will be called for all items when the items are loaded.
+    //This is also called when items are created.
 
     core.on("focus", function (d) {
         let id = d.id;
